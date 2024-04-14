@@ -1,5 +1,6 @@
 package com.projects.restfulwebservices.user;
 
+import com.projects.restfulwebservices.exception.BusinessValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,18 +13,25 @@ public class UserService {
     }
 
     public User getUserById(long id) {
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(id).orElseThrow(() ->  new BusinessValidationException("not_found","user not found"));
     }
 
     public User updateUser(long id, UpdateUserRequest updateUserRequest) {
-        User user = new User();
-        user.setId(id);
-        user.setAge(updateUserRequest.getAge());
-        user.setName(updateUserRequest.getName());
-        return userRepository.save(user);
+        User user = userRepository.findById(id).orElse(null);
+        if(user ==null) {
+            throw new BusinessValidationException("not_found","user not found");
+        }
+        User userReq = new User();
+        userReq.setId(id);
+        userReq.setAge(updateUserRequest.getAge());
+        userReq.setName(updateUserRequest.getName());
+        return userRepository.save(userReq);
     }
-    public void deleteUser(long id) {
-
+    public void deleteUser(long id)  {
+        User user = userRepository.findById(id).orElse(null);
+        if(user ==null) {
+            throw new BusinessValidationException("not_found","user not found");
+        }
          userRepository.deleteById(id);
     }
 }
